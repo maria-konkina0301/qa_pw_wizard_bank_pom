@@ -5,12 +5,17 @@ import { AddCustomerPage } from '../../../src/pages/manager/AddCustomerPage';
 import { OpenAccountPage } from '../../../src/pages/manager/OpenAccountPage';
 import { CustomersListPage } from '../../../src/pages/manager/CustomersListPage';
 
-const firstName = faker.person.firstName();
-const lastName = faker.person.lastName();
-const postCode = faker.location.zipCode();
-const fullName = `${firstName} ${lastName}`;
+let firstName;
+let lastName;
+let postCode;
+let fullName;
 
 test.beforeEach(async ({ page }) => {
+
+  firstName = faker.person.firstName();
+  lastName = faker.person.lastName();
+  postCode = faker.location.zipCode();
+  fullName = `${firstName} ${lastName}`;
 
 const bankHomePage = new BankHomePage(page);
 const addCustomerPage = new AddCustomerPage(page);
@@ -21,12 +26,10 @@ const addCustomerPage = new AddCustomerPage(page);
   await bankHomePage.clickBankManagerLoginButton();
   await addCustomerPage.clickAddCustomerTab();
   await addCustomerPage.fillCustomerForm(firstName, lastName, postCode);
-  
-  await addCustomerPage.clickSubmitButton(); 
-
+  await addCustomerPage.clickSubmitButton();
   await page.reload();
-  await page.waitForTimeout(1000); // Даємо Angular 1 секунду на оновлення списків
 });
+
   /* 
   Pre-conditons:
   1. Open Add Customer page

@@ -4,11 +4,15 @@ import { BankHomePage } from '../../../src/pages/BankHomePage';
 import { AddCustomerPage } from '../../../src/pages/manager/AddCustomerPage';
 import { CustomersListPage } from '../../../src/pages/manager/CustomersListPage';
 
-const firstName = faker.person.firstName();
-const lastName = faker.person.lastName();
-const postCode = faker.location.zipCode();
+let firstName;
+let lastName;
+let postCode;
 
 test.beforeEach(async ({ page }) => {
+
+  firstName = faker.person.firstName();
+  lastName = faker.person.lastName();
+  postCode = faker.location.zipCode();
 
 const bankHomePage = new BankHomePage(page);
 const addCustomerPage = new AddCustomerPage(page);
@@ -18,9 +22,9 @@ const addCustomerPage = new AddCustomerPage(page);
   await bankHomePage.open();
   await bankHomePage.clickBankManagerLoginButton();
   await addCustomerPage.clickAddCustomerTab();
-  
+
   await addCustomerPage.fillCustomerForm(firstName, lastName, postCode);
-  await addCustomerPage.clickSubmitButton(); 
+  await addCustomerPage.clickSubmitButton();
 
   await page.reload();
 });
