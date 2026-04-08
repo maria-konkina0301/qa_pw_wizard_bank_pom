@@ -1,7 +1,40 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
+import { BankHomePage } from '../../../src/pages/BankHomePage';
+import { AddCustomerPage } from '../../../src/pages/manager/AddCustomerPage';
 import { faker } from '@faker-js/faker';
+import { CustomersListPage } from '../../../src/pages/manager/CustomersListPage';
+
 
 test('Assert manager can add new customer', async ({ page }) => {
+
+  const bankHomePage = new BankHomePage(page);
+  const addCustomerPage = new AddCustomerPage(page);
+
+  await bankHomePage.open();
+  await bankHomePage.clickBankManagerLoginButton();
+  await addCustomerPage.clickAddCustomerTab();
+
+  const firstName = faker.person.firstName();
+  const lastName = faker.person.lastName();  
+  const postCode = faker.location.zipCode();
+
+  await addCustomerPage.fillCustomerForm(firstName, lastName, postCode);
+  await addCustomerPage.clickSubmitButton();
+  await page.reload();
+
+  const customersListPage = new CustomersListPage(page);
+
+  await customersListPage.clickCustomersTab();
+
+  const lastRow = customersListPage.tableRows.last();
+
+  await expect(lastRow).toContainText(firstName); 
+  await expect(lastRow).toContainText(lastName); 
+  await expect(lastRow).toContainText(postCode); 
+
+  const accountNumberCell = lastRow.locator('td').nth(3);
+  await expect(accountNumberCell).toBeEmpty();
+
   /* 
   Test:
   1. Open add customer page by link

@@ -1,7 +1,32 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { faker } from '@faker-js/faker';
+import { BankHomePage } from '../../../src/pages/BankHomePage';
+import { AddCustomerPage } from '../../../src/pages/manager/AddCustomerPage';
+import { OpenAccountPage } from '../../../src/pages/manager/OpenAccountPage';
+import { CustomersListPage } from '../../../src/pages/manager/CustomersListPage';
+
+const firstName = faker.person.firstName();
+const lastName = faker.person.lastName();
+const postCode = faker.location.zipCode();
+const fullName = `${firstName} ${lastName}`;
 
 test.beforeEach(async ({ page }) => {
+
+const bankHomePage = new BankHomePage(page);
+const addCustomerPage = new AddCustomerPage(page);
+
+  page.on('dialog', dialog => dialog.accept());
+
+  await bankHomePage.open();
+  await bankHomePage.clickBankManagerLoginButton();
+  await addCustomerPage.clickAddCustomerTab();
+  await addCustomerPage.fillCustomerForm(firstName, lastName, postCode);
+  
+  await addCustomerPage.clickSubmitButton(); 
+
+  await page.reload();
+  await page.waitForTimeout(1000); // Даємо Angular 1 секунду на оновлення списків
+});
   /* 
   Pre-conditons:
   1. Open Add Customer page
@@ -11,9 +36,35 @@ test.beforeEach(async ({ page }) => {
   5. Click [Add Customer].
   6. Reload the page (This is a simplified step to close the popup).
   */
+
+test('Assert manager can open account for new customer', async ({ page }) => {
+
+const openAccountPage = new OpenAccountPage(page);
+const customersListPage = new CustomersListPage(page);
+
+  await openAccountPage.clickOpenAccountTab();
+  await openAccountPage.selectCustomer(`${firstName} ${lastName}`);
+  await openAccountPage.selectCurrency('Dollar');
+
+  await openAccountPage.clickProcessButton();
+  await customersListPage.clickCustomersTab();
+  
+const row = page.locator('table tbody tr').filter({ hasText: lastName });
+  
+  try {
+    await expect(row).toBeVisible({ timeout: 5000 });
+  } catch (e) {
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+  }
+
+  await expect(row).toBeVisible({ timeout: 10000 });
+  
+const accountNumberCell = row.locator('td').nth(3);
+  await expect(accountNumberCell).toContainText(/\d+/);
 });
 
-test('Assert manager can add new customer', async ({ page }) => {
+
   /* 
   Test:
   1. Click [Open Account].
@@ -28,4 +79,6 @@ test('Assert manager can add new customer', async ({ page }) => {
   1. Do not rely on the customer row id for the step 13. 
     Use the ".last()" locator to get the last row.
   */
-});
+
+
+  
